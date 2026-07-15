@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JWT Authentication Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>JWT Authentication Demo</h1>
+
+    <!-- REGISTER -->
+
+    <div class="card">
+        <h2>Register</h2>
+
+        <input id="regUsername" placeholder="Username">
+        <input id="regEmail" placeholder="Email">
+        <input id="regPassword" type="password" placeholder="Password">
+
+        <select id="roleId">
+            <option value="1">Admin</option>
+            <option value="2">Manager</option>
+            <option value="3">Employee</option>
+        </select>
+
+        <button onclick="register()">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+
+    <div class="card">
+
+        <h2>Login</h2>
+
+        <input id="loginEmail" placeholder="Email">
+        <input id="loginPassword" type="password" placeholder="Password">
+
+        <button onclick="login()">Login</button>
+
+    </div>
+
+    <!-- TOKEN -->
+
+    <div class="card">
+
+        <h2>Current Token</h2>
+
+        <textarea id="tokenBox" readonly></textarea>
+
+    </div>
+
+    <!-- CREATE EMPLOYEE -->
+
+    <div class="card">
+
+        <h2>Create Employee</h2>
+
+        <input id="fname" placeholder="First Name">
+        <input id="lname" placeholder="Last Name">
+        <input id="dept" placeholder="Department">
+        <input id="salary" placeholder="Salary">
+
+        <button onclick="createEmployee()">
+            Create Employee
+        </button>
+
+    </div>
+
+    <!-- EMPLOYEE LIST -->
+
+    <div class="card">
+
+        <h2>Employees</h2>
+
+        <button onclick="getEmployees()">
+            Load Employees
+        </button>
+
+        <pre id="employeeList"></pre>
+
+    </div>
+
+    <!-- LOGOUT -->
+
+    <div class="card">
+
+        <button class="logout" onclick="logout()">
+            Logout
+        </button>
+    </div>
+
+    <!-- API RESPONSE -->
+
+    <div class="card">
+
+        <h2>API Response</h2>
+
+        <pre id="response"></pre>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

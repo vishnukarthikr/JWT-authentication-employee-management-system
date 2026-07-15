@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - JWT Authentication</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span style="font-size: 1.75rem;">🚀</span>
+                <h1>AuthApp</h1>
+            </div>
+
+            <nav>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html" class="active">📊 Dashboard</a></li>
+                    <li><a href="employees.html">👥 Employees</a></li>
+                    <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- NAVBAR -->
+            <nav class="navbar">
+                <h2 style="margin: 0;">Dashboard</h2>
+                <div class="navbar-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userInitial">U</div>
+                        <div>
+                            <p style="margin: 0; font-weight: 500;" id="userEmail">User</p>
+                            <p style="margin: 0; font-size: 0.875rem; color: var(--gray-500);" id="userRole">Role</p>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+                <div class="page-header">
+                    <h1>Welcome to Your Dashboard</h1>
+                    <p>Manage your employees and account settings from here.</p>
+                </div>
+
+                <!-- STATS GRID -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-label">Total Employees</p>
+                        <p class="stat-value" id="totalEmployees">0</p>
+                    </div>
+                    <div class="stat-card success">
+                        <p class="stat-label">Active Users</p>
+                        <p class="stat-value">1</p>
+                    </div>
+                    <div class="stat-card warning">
+                        <p class="stat-label">Departments</p>
+                        <p class="stat-value" id="totalDepts">0</p>
+                    </div>
+                </div>
+
+                <!-- MAIN CARDS -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <!-- QUICK ACTIONS CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Quick Actions</h2>
+                        </div>
+                        <div class="card-body">
+                            <button onclick="showAddEmployeeModal()" class="btn btn-primary btn-block" style="margin-bottom: 0.5rem;">
+                                ➕ Add New Employee
+                            </button>
+                            <button onclick="loadEmployees()" class="btn btn-secondary btn-block">
+                                👥 View All Employees
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ACCOUNT INFO CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Account Information</h2>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Email:</strong> <span id="accountEmail">-</span></p>
+                            <p><strong>Role:</strong> <span id="accountRole">-</span></p>
+                            <p><strong>Joined:</strong> <span id="joinedDate">Today</span></p>
+                            <div class="card-footer">
+                                <button onclick="logout()" class="btn btn-danger">Sign Out</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TOKEN INFO CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Your Token</h2>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size: 0.875rem; color: var(--gray-500); margin-bottom: 1rem;">Your JWT token (use for API requests):</p>
+                            <div class="response-box" id="tokenBox" style="font-size: 0.75rem; word-break: break-all; max-height: 150px;">
+                                No token
+                            </div>
+                            <button onclick="copyToken()" class="btn btn-sm btn-outline" style="margin-top: 1rem; width: 100%;">
+                                📋 Copy Token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESPONSE CONTAINER -->
+                <div style="margin-top: 2rem;">
+                    <div id="response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD EMPLOYEE MODAL -->
+    <div id="addEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Employee</h2>
+                <button class="close-btn" onclick="closeAddEmployeeModal()">&times;</button>
+            </div>
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label for="fname">First Name</label>
+                    <input type="text" id="fname" placeholder="First name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lname">Last Name</label>
+                    <input type="text" id="lname" placeholder="Last name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dept">Department</label>
+                    <input type="text" id="dept" placeholder="Department" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="salary">Salary</label>
+                    <input type="number" id="salary" placeholder="Salary" required>
+                </div>
+
+                <div class="card-footer">
+                    <button type="button" onclick="closeAddEmployeeModal()" class="btn btn-outline">Cancel</button>
+                    <button type="button" onclick="createEmployee()" class="btn btn-primary">Create Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function initDashboard() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Decode and display user info
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById("userEmail").textContent = tokenData.email || "User";
+            document.getElementById("userRole").textContent = tokenData.role || "Role";
+            document.getElementById("accountEmail").textContent = tokenData.email || "-";
+            document.getElementById("accountRole").textContent = tokenData.role || "-";
+            document.getElementById("userInitial").textContent = (tokenData.email?.charAt(0) || "U").toUpperCase();
+            document.getElementById("tokenBox").textContent = token;
+
+            // Load employee count
+            loadEmployeeCount();
+        }
+
+        async function loadEmployeeCount() {
+            const token = localStorage.getItem("token");
+            try {
+                const response = await fetch("http://localhost:5000/employees", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                const employees = await response.json();
+                document.getElementById("totalEmployees").textContent = Array.isArray(employees) ? employees.length : 0;
+            } catch (error) {
+                console.error("Error loading employees:", error);
+            }
+        }
+
+        function showAddEmployeeModal() {
+            document.getElementById("addEmployeeModal").classList.add("show");
+        }
+
+        function closeAddEmployeeModal() {
+            document.getElementById("addEmployeeModal").classList.remove("show");
+            document.getElementById("employeeForm").reset();
+        }
+
+        function copyToken() {
+            const token = localStorage.getItem("token");
+            navigator.clipboard.writeText(token);
+            alert("Token copied to clipboard!");
+        }
+
+        // Initialize on load
+        window.addEventListener("load", initDashboard);
+    </script>
+</body>
+</html>

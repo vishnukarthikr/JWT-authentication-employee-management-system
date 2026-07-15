@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees - JWT Authentication</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span style="font-size: 1.75rem;">🚀</span>
+                <h1>AuthApp</h1>
+            </div>
+
+            <nav>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html">📊 Dashboard</a></li>
+                    <li><a href="employees.html" class="active">👥 Employees</a></li>
+                    <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- NAVBAR -->
+            <nav class="navbar">
+                <h2 style="margin: 0;">Employees Management</h2>
+                <div class="navbar-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userInitial">U</div>
+                        <div>
+                            <p style="margin: 0; font-weight: 500;" id="userEmail">User</p>
+                            <p style="margin: 0; font-size: 0.875rem; color: var(--gray-500);" id="userRole">Role</p>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- PAGE CONTENT -->
+            <div class="page-content">
+                <div class="page-header">
+                    <h1>Employee Directory</h1>
+                    <p>Manage and view all employees in your organization.</p>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <button onclick="showAddEmployeeModal()" class="btn btn-primary">
+                        ➕ Add New Employee
+                    </button>
+                    <button onclick="refreshEmployees()" class="btn btn-secondary">
+                        🔄 Refresh
+                    </button>
+                </div>
+
+                <!-- EMPLOYEES TABLE CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Employee List</h2>
+                        <span style="color: var(--gray-500); font-size: 0.875rem;" id="employeeCount">Loading...</span>
+                    </div>
+                    <div class="table-container">
+                        <table id="employeesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Department</th>
+                                    <th>Salary</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesBody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
+                                        Loading employees...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- RESPONSE CONTAINER -->
+                <div style="margin-top: 2rem;">
+                    <div id="response"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD EMPLOYEE MODAL -->
+    <div id="addEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Employee</h2>
+                <button class="close-btn" onclick="closeAddEmployeeModal()">&times;</button>
+            </div>
+            <form id="employeeForm">
+                <div class="form-group">
+                    <label for="fname">First Name</label>
+                    <input type="text" id="fname" placeholder="First name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lname">Last Name</label>
+                    <input type="text" id="lname" placeholder="Last name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dept">Department</label>
+                    <input type="text" id="dept" placeholder="Department" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="salary">Salary</label>
+                    <input type="number" id="salary" placeholder="Salary" step="0.01" required>
+                </div>
+
+                <div class="card-footer">
+                    <button type="button" onclick="closeAddEmployeeModal()" class="btn btn-outline">Cancel</button>
+                    <button type="button" onclick="createEmployee()" class="btn btn-primary">Create Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function initEmployeesPage() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Decode and display user info
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            document.getElementById("userEmail").textContent = tokenData.email || "User";
+            document.getElementById("userRole").textContent = tokenData.role || "Role";
+            document.getElementById("userInitial").textContent = (tokenData.email?.charAt(0) || "U").toUpperCase();
+
+            // Load employees
+            loadEmployees();
+        }
+
+        async function loadEmployees() {
+            const token = localStorage.getItem("token");
+            try {
+                const response = await fetch("http://localhost:5000/employees", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to load employees");
+                }
+
+                const employees = await response.json();
+                displayEmployees(employees);
+                document.getElementById("employeeCount").textContent = `Total: ${employees.length}`;
+                showResponse({ message: "Employees loaded successfully" });
+            } catch (error) {
+                document.getElementById("employeesBody").innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">
+                            ⚠️ Error loading employees: ${error.message}
+                        </td>
+                    </tr>
+                `;
+                showResponse({ error: error.message });
+            }
+        }
+
+        function displayEmployees(employees) {
+            const tbody = document.getElementById("employeesBody");
+            
+            if (employees.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 2rem;">
+                            📭 No employees found. <a href="#" onclick="showAddEmployeeModal(); return false;">Add one now</a>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = employees.map(emp => `
+                <tr>
+                    <td>${emp.id}</td>
+                    <td><strong>${emp.first_name}</strong></td>
+                    <td>${emp.last_name}</td>
+                    <td><span style="background: var(--gray-100); padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.875rem;">${emp.department}</span></td>
+                    <td>$${parseFloat(emp.salary).toLocaleString()}</td>
+                    <td>
+                        <button onclick="editEmployee(${emp.id})" class="btn btn-sm btn-outline" style="margin-right: 0.5rem;">
+                            ✏️ Edit
+                        </button>
+                        <button onclick="deleteEmployee(${emp.id})" class="btn btn-sm btn-danger">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function refreshEmployees() {
+            loadEmployees();
+        }
+
+        function showAddEmployeeModal() {
+            document.getElementById("addEmployeeModal").classList.add("show");
+            document.getElementById("employeeForm").reset();
+        }
+
+        function closeAddEmployeeModal() {
+            document.getElementById("addEmployeeModal").classList.remove("show");
+        }
+
+        function editEmployee(id) {
+            alert("Edit functionality can be added. Employee ID: " + id);
+        }
+
+        async function deleteEmployee(id) {
+            if (!confirm("Are you sure you want to delete this employee?")) {
+                return;
+            }
+
+            const token = localStorage.getItem("token");
+            try {
+                const response = await fetch(`http://localhost:5000/employees/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                showResponse(data);
+                loadEmployees();
+            } catch (error) {
+                showResponse({ error: error.message });
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener("load", initEmployeesPage);
+    </script>
+</body>
+</html>
