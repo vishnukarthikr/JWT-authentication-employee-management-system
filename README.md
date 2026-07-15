@@ -1,6 +1,6 @@
 # 🚀 JWT Authentication Employee Management System
 
-A full-stack Employee Management System built using **Node.js**, **Express.js**, and **MySQL**, featuring **JWT Authentication**, **Role-Based Access Control (RBAC)**, **Password Hashing**, **Audit Logging**, and secure REST APIs. 【1-d89cf3】
+A full-stack Employee Management System built using **Node.js**, **Express.js**, and **MySQL**, featuring **JWT Authentication**, **Role-Based Access Control (RBAC)**, **Password Hashing**, **Audit Logging**, and secure REST APIs.
 
 ---
 
@@ -217,3 +217,182 @@ Example Users Table:
 
 ```sql
 CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100),
+    email VARCHAR(100),
+    password VARCHAR(255),
+    role VARCHAR(20)
+);
+```
+
+Example Employees Table:
+
+```sql
+CREATE TABLE employees (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    email VARCHAR(100),
+    department VARCHAR(100),
+    salary DECIMAL(10,2)
+);
+```
+
+Example Audit Logs Table:
+
+```sql
+CREATE TABLE audit_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    action VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+# 🔑 Authentication Flow
+
+### Register
+
+```text
+User → Register
+      ↓
+Password Hashed
+      ↓
+Stored in Database
+```
+
+### Login
+
+```text
+User Login
+      ↓
+Password Verification
+      ↓
+JWT Generated
+      ↓
+Token Sent to Client
+```
+
+### Access Protected API
+
+```text
+Client Request
+      ↓
+Authorization Header
+      ↓
+JWT Verification
+      ↓
+Route Access Granted
+```
+
+---
+
+# 📬 API Endpoints
+
+## Authentication
+
+| Method | Endpoint | Description |
+|----------|-----------|-------------|
+| POST | /auth/register | Register User |
+| POST | /auth/login | Login User |
+
+---
+
+## Employees
+
+| Method | Endpoint | Description |
+|----------|-----------|-------------|
+| GET | /employees | Get All Employees |
+| GET | /employees/:id | Get Employee |
+| POST | /employees | Create Employee |
+| PUT | /employees/:id | Update Employee |
+| DELETE | /employees/:id | Delete Employee |
+
+---
+
+## Audit Logs
+
+| Method | Endpoint | Description |
+|----------|-----------|-------------|
+| GET | /audit-logs | Get Audit Logs |
+
+---
+
+# 🔒 Protected API Example
+
+```http
+Authorization: Bearer <jwt_token>
+```
+
+Example:
+
+```javascript
+fetch("http://localhost:5000/employees", {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+```
+
+---
+
+# 📈 Learning Outcomes
+
+This project helps developers understand:
+
+- Authentication vs Authorization
+- JWT Implementation
+- Password Hashing
+- Middleware Architecture
+- REST API Design
+- MySQL Relationships
+- Secure Backend Development
+- Audit Logging Concepts
+- Enterprise Application Structure
+
+---
+
+# 🚀 Future Enhancements
+
+- Refresh Tokens
+- Email Verification
+- Forgot Password Feature
+- Pagination
+- Search & Filtering
+- Docker Support
+- Swagger API Documentation
+- Unit Testing
+- CI/CD Pipeline
+- Cloud Deployment
+
+---
+
+# 👨‍💻 Author
+
+**Vishnu Karthik Ravichandran**
+
+Associate Developer  
+Coimbatore, Tamil Nadu, India
+
+GitHub:
+https://github.com/vishnukarthikr
+
+---
+
+# ⭐ Support
+
+If you found this project useful:
+
+⭐ Star the repository
+
+🍴 Fork the project
+
+📢 Share with others
+
+---
+
+## 📄 License
+
+This project is intended for learning and educational purposes.
